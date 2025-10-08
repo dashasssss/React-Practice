@@ -15,6 +15,7 @@ import productsFromServer from './api/products';
 
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
+  const [search, setSearch] = useState('');
 
   const products = productsFromServer.map(product => {
     const category = categoriesFromServer.find(
@@ -25,9 +26,9 @@ export const App = () => {
     return { ...product, category, user };
   });
 
-  const visibleProducts = selectedUserId
-    ? products.filter(p => p.user.id === selectedUserId)
-    : products;
+  const visibleProducts = products
+    .filter(p => !selectedUserId || p.user.id === selectedUserId)
+    .filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="section">
@@ -74,7 +75,8 @@ export const App = () => {
                   type="text"
                   className="input"
                   placeholder="Search"
-                  value="qwe"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
                 />
 
                 <span className="icon is-left">
@@ -83,11 +85,14 @@ export const App = () => {
 
                 <span className="icon is-right">
                   {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <button
-                    data-cy="ClearButton"
-                    type="button"
-                    className="delete"
-                  />
+                  {search && (
+                    <button
+                      data-cy="ClearButton"
+                      type="button"
+                      className="delete"
+                      onClick={() => setSearch('')}
+                    />
+                  )}
                 </span>
               </p>
             </div>
@@ -133,6 +138,7 @@ export const App = () => {
                 onClick={e => {
                   e.preventDefault();
                   setSelectedUserId(null);
+                  setSearch('');
                 }}
               >
                 Reset all filters
