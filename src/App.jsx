@@ -16,6 +16,7 @@ import productsFromServer from './api/products';
 export const App = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [search, setSearch] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState([]);
 
   const products = productsFromServer.map(product => {
     const category = categoriesFromServer.find(
@@ -28,6 +29,11 @@ export const App = () => {
 
   const visibleProducts = products
     .filter(p => !selectedUserId || p.user.id === selectedUserId)
+    .filter(
+      p =>
+        selectedCategoryId.length === 0 ||
+        selectedCategoryId.includes(p.category.id),
+    )
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -101,33 +107,40 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={`button is-success mr-6 ${
+                  selectedCategoryId.length === 0 ? 'is-outlined' : ''
+                }`}
+                onClick={e => {
+                  e.preventDefault();
+                  setSelectedCategoryId([]);
+                }}
               >
                 All
               </a>
 
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 1
-              </a>
+              {categoriesFromServer.map(cat => {
+                const isSelected = selectedCategoryId.includes(cat.id);
 
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 2
-              </a>
-
-              <a
-                data-cy="Category"
-                className="button mr-2 my-1 is-info"
-                href="#/"
-              >
-                Category 3
-              </a>
-              <a data-cy="Category" className="button mr-2 my-1" href="#/">
-                Category 4
-              </a>
+                return (
+                  <a
+                    key={cat.id}
+                    data-cy="Category"
+                    href="#/"
+                    className={`button mr-2 my-1 ${isSelected ? 'is-info' : ''}`}
+                    onClick={e => {
+                      e.preventDefault();
+                      if (isSelected) {
+                        setSelectedCategoryId(prev =>
+                          prev.filter(id => id !== cat.id),);
+                      } else {
+                        setSelectedCategoryId(prev => [...prev, cat.id]);
+                      }
+                    }}
+                  >
+                    {cat.title}
+                  </a>
+                );
+              })}
             </div>
 
             <div className="panel-block">
@@ -139,6 +152,7 @@ export const App = () => {
                   e.preventDefault();
                   setSelectedUserId(null);
                   setSearch('');
+                  setSelectedCategoryId(null);
                 }}
               >
                 Reset all filters
