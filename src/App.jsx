@@ -22,17 +22,19 @@ export const App = () => {
     const category = categoriesFromServer.find(
       cat => cat.id === product.categoryId,
     );
-    const user = usersFromServer.find(usr => usr.id === category.ownerId);
+    const user = category
+      ? usersFromServer.find(usr => usr.id === category.ownerId)
+      : null;
 
     return { ...product, category, user };
   });
 
   const visibleProducts = products
-    .filter(p => !selectedUserId || p.user.id === selectedUserId)
+    .filter(p => !selectedUserId || p.user?.id === selectedUserId)
     .filter(
       p =>
         selectedCategoryId.length === 0 ||
-        selectedCategoryId.includes(p.category.id),
+        (p.category?.id != null && selectedCategoryId.includes(p.category.id)),
     )
     .filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -129,12 +131,11 @@ export const App = () => {
                     className={`button mr-2 my-1 ${isSelected ? 'is-info' : ''}`}
                     onClick={e => {
                       e.preventDefault();
-                      if (isSelected) {
-                        setSelectedCategoryId(prev =>
-                          prev.filter(id => id !== cat.id),);
-                      } else {
-                        setSelectedCategoryId(prev => [...prev, cat.id]);
-                      }
+                      setSelectedCategoryId(prev =>
+                        isSelected
+                          ? prev.filter(id => id !== cat.id)
+                          : [...prev, cat.id],
+                      );
                     }}
                   >
                     {cat.title}
@@ -148,11 +149,10 @@ export const App = () => {
                 data-cy="ResetAllButton"
                 href="#/"
                 className="button is-link is-outlined is-fullwidth"
-                onClick={e => {
-                  e.preventDefault();
+                onClick={() => {
                   setSelectedUserId(null);
                   setSearch('');
-                  setSelectedCategoryId(null);
+                  setSelectedCategoryId([]);
                 }}
               >
                 Reset all filters
